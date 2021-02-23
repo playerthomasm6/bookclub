@@ -26,6 +26,7 @@ function Search() {
   useEffect(() => {
     
     console.log(savedBook);
+    if (savedBook.title && savedBook.author)
     API.saveBook(savedBook)
     .then(res => loadBooks())
     .catch(err => console.log(err));
@@ -56,19 +57,6 @@ function Search() {
     const { name, value } = event.target;
     setFormObject({ ...formObject, [name]: value })
   };
-
-  //  function handleFormSubmit(event) {
-  //    event.preventDefault();
-  //   if (formObject.title && formObject.author) {
-  //      API.saveBook({
-  //        title: formObject.title,
-  //        author: formObject.author,
-  //        synopsis: formObject.synopsis
-  //      })
-  //        .then(res => loadBooks())
-  //        .catch(err => console.log(err));
-  //    }
-  //  };
 
   function handleFormSubmit(event) {
     event.preventDefault();
@@ -229,8 +217,8 @@ function Search() {
 )
     </div>
 
+  
   )
-
 }
 
 export default Search;
