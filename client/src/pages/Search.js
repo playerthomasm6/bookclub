@@ -5,15 +5,16 @@ import { List, ListItem } from "../components/List";
 import { Input, TextArea, FormBtn } from "../components/Form";
 import { Link } from "react-router-dom";
 import DeleteBtn from "../components/DeleteBtn";
-import GoogleSearch from "../components/GoogleSearch";
+// import GoogleSearch from "../components/GoogleSearch";
 import SearchContext from "../utils/searchContext";
 import "./style.css";
 
-function Search(props) {
+function Search() {
   const [books, setBooks] = useState([]);
   const [formObject, setFormObject] = useState({});
   const [googleBooks, setGoogleBooks] = useState([]);
-  const [search, setSearch] = useState();
+  const [search, setSearch] = useState({});
+  const [savedBook, setSavedBook] = useState({})
 
   useEffect(() => {
 
@@ -22,6 +23,18 @@ function Search(props) {
     console.log(books);
   }, []
   )
+  useEffect(() => {
+    
+    console.log(savedBook);
+    API.saveBook(savedBook)
+    .then(res => loadBooks())
+    .catch(err => console.log(err));
+  }, [savedBook]
+  )
+
+  
+
+  
 
   // Loads all books and sets them to books
   function loadBooks() {
@@ -57,42 +70,46 @@ function Search(props) {
   //    }
   //  };
 
-  function handleFormSubmit(event, search) {
+  function handleFormSubmit(event) {
     event.preventDefault();
     if (formObject.search) {
       loadGoogleResults(formObject.search)
-
+      console.log(formObject.search)
     }
   };
 
   function loadGoogleResults(search) {
     googleAPI.getBooks(search)
       .then(res => setGoogleBooks(res.data.items))
-      .then(console.log())
+      .then(console.log(googleBooks))
       .catch(err => console.log(err))
   }
 
+   function saveBookDB() {   
+       API.saveBook({savedBook})
+         .then(res => loadBooks())
+         .catch(err => console.log(err));
+     }
+   
+
 
   return (
-    <div>
+    <div className="container-fluid">
       <form>
         <Input
           onChange={handleInputChange}
           name="search"
           placeholder="search a book"
-          value={formObject.search}
+          
         />
-        <FormBtn
-          disabled={!(formObject.search)}
-          onClick={handleFormSubmit}
-        >
-          Search Book
-              </FormBtn>
+        <FormBtn disabled={!(formObject.search)} onClick={handleFormSubmit}>Search Book</FormBtn>
       </form>
 
       
 
-      <div>
+      <div className="row">
+        <div className="col-sm-6">
+        <h1>Saved Books</h1>
         {books.length ? (
           <List>
             {books.map(book => {
@@ -134,37 +151,65 @@ function Search(props) {
             <h3>No Results to Display</h3>
           )}
       </div>
-      <div>
-        {googleBooks.map(googleBook => {
-          const buyLink = () => {
-            if(googleBook.volumeInfo.saleInfo.buyLink) {
-            return <a href={googleBook.volumeInfo.saleInfo.buyLink}>Buy this book for ${googleBook.volumeInfo.saleInfo.listPrice.amount}</a>
-          } else {
-            return <p>Book Not For Sale</p>
-          }
-        }
+      <div className="col-sm-6">
+      {googleBooks.map(googleBook => {
+          const title = googleBook.volumeInfo.title;
+          const author = googleBook.volumeInfo.authors;
+          const description = googleBook.volumeInfo.description;
+          const image = googleBook.volumeInfo.imageLinks.smallThumbnail;
+          const preview = googleBook.volumeInfo.previewLink;
+          const saleability = googleBook.volumeInfo.saleablility;
+          // const buyLink = () => {
+          //   if(!googleBook.volumeInfo.saleInfo.buyLink) {
+          //     return <p key={title}>NOT FOR SALE</p>
+          //   } else {
+          //     return googleBook.volumeInfo.saleInfo.buyLink
+          //   }
+          // };
+          // const price = () => {
+          //   if(!googleBook.volumeInfo.saleInfo.listPrice.amount) {
+          //     return <p>NOT FOR SALE</p>
+          //   } else {
+          //     return googleBook.volumeInfo.saleInfo.listPrice.amount
+          //   }
+          // };
+      
         return (
-          <div className="container-fluid border">
+          <div key={title + author} className="border">
             <div className="row">
 
               <div className="col-sm-2">
-                <img className="thumbNail"src={googleBook.volumeInfo.imageLinks.smallThumbnail} alt="bookthumbnail"></img>
+                <img 
+                className="thumbNail"
+                src={image} 
+                alt="bookthumbnail"
+                data-a
+                ></img>
               </div>
 
               <div className="col-sm-10">
                 <div className="row">
               
                   <div className="col">
-                      <h5>{googleBook.volumeInfo.title}</h5>
-                      <p>{googleBook.volumeInfo.authors}</p>
+                      <h5>{title}</h5>
+                      <p>{author}</p>
                   </div>
 
                 <div className="row">
                   <div className="col">
-                      <p>{googleBook.volumeInfo.description}</p>
-                      <a href={googleBook.volumeInfo.previewLink}>Preview This Book</a>
-                      <p>{googleBook.volumeInfo.saleablility}</p>
-                      <div>{buyLink}</div>
+                      <p>{description}</p>
+                      <a href={preview}>Preview This Book</a>
+                      <p>{saleability}</p>
+                      {/* <div value={buyLink}>{buyLink}Is this showing up</div>
+                      <div>{price}</div> */}
+                       <button onClick={() => setSavedBook(
+                         {
+                          title: title,
+                          author: author.toString(),
+                          desciption: description,
+                          image: image,
+                          link: preview,
+                          })}>Save</button>
                       
                       
                       
@@ -177,6 +222,11 @@ function Search(props) {
         )
       })}
       </div>
+
+        </div>
+    
+      
+)
     </div>
 
   )
